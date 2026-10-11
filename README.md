@@ -80,3 +80,7 @@ exactly that reason.
 
 MIT. The source datasets keep their own licenses (MIT for the Places365
 mirrors used here, CC-BY-4.0 for the scikit-harry sets).
+
+<p align="center">
+  Built with <3 and a lot of bad decisions! by <a href="https://ranveersoni.me">Ranveer Soni</a>
+</p>
