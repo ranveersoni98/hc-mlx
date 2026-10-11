@@ -23,6 +23,7 @@ def main() -> None:
     pr = sub.add_parser("predict", help="classify one photo")
     pr.add_argument("image", help="path to photo")
     pr.add_argument("--top", type=int, default=3)
+    pr.add_argument("--repo", default=None, help="Hub model repo to download weights from")
 
     a = p.parse_args()
     if a.cmd == "info":
@@ -47,7 +48,7 @@ def main() -> None:
     elif a.cmd == "predict":
         from hc_mlx.inference import predict
 
-        for label, prob in predict(a.image)[: a.top]:
+        for label, prob in predict(a.image, repo=a.repo)[: a.top]:
             print(f"{label:10s} {prob:.3f}")
 
 

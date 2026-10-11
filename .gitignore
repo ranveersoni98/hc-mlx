@@ -16,3 +16,5 @@ wheels/
 
 # Trained weights (reproducible via hc-mlx train)
 /checkpoints/
+# Hub upload staging (reproducible, see README)
+/hub/

@@ -20,6 +20,16 @@ hc-mlx predict photo.jpg # top 3 guesses for your photo
 
 Training flags you may want: `hc-mlx train --epochs 50 --batch 32 --size 128`.
 
+## Try it without training
+
+The best weights are on the Hub at
+[RanveerSoni98/hc-mlx](https://huggingface.co/RanveerSoni98/hc-mlx), with a
+standalone model file and a card, so anyone can run it with no training:
+
+```bash
+hc-mlx predict photo.jpg --repo RanveerSoni98/hc-mlx
+```
+
 ## How it works
 
 No single public dataset labels houses the way we wanted, so we combined a few

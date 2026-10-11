@@ -29,9 +29,8 @@ def predict(
         ckpt = hf_hub_download(repo_id=repo, filename="house_cnn_best.safetensors")
     if ckpt is None:
         ckpt = str(BEST_CKPT if BEST_CKPT.exists() else LAST_CKPT)
-    if ckpt is None:
-        ckpt = str(BEST_CKPT if BEST_CKPT.exists() else LAST_CKPT)
-    model = HouseCNN(num_classes=len(TARGET_CLASSES))    model.load_weights(str(ckpt))
+    model = HouseCNN(num_classes=len(TARGET_CLASSES))
+    model.load_weights(str(ckpt))
     model.eval()
 
     img = Image.open(path).convert("RGB").resize((size, size), Image.BILINEAR)
@@ -46,10 +45,11 @@ def main() -> None:
     p = argparse.ArgumentParser(description="Classify a house photo")
     p.add_argument("image", help="path to photo")
     p.add_argument("--ckpt", default=None, help="checkpoint path (default: best if present)")
+    p.add_argument("--repo", default=None, help="Hub model repo to download weights from")
     p.add_argument("--size", type=int, default=128)
     p.add_argument("--top", type=int, default=3)
     a = p.parse_args()
-    for label, prob in predict(a.image, a.ckpt, a.size)[: a.top]:
+    for label, prob in predict(a.image, a.ckpt, a.size, a.repo)[: a.top]:
         print(f"{label:10s} {prob:.3f}")
 
 
