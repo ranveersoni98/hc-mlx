@@ -71,6 +71,7 @@ with `hc-mlx download` and `hc-mlx train`.
 | 600 images, 20 epochs | 0.325 |
 | 600 images, 30 epochs | 0.442 |
 | 600 images + flips, 50 epochs | 0.458 |
+| 5,200 images + flips, 40 epochs | 0.634 |
 
 Typical confusions are sensible ones: mansion vs haveli, apartment vs villa.
 More data helps more than more epochs. The DuckDB scale up path exists for

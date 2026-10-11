@@ -18,12 +18,20 @@ from hc_mlx.models.cnn import HouseCNN
 
 
 def predict(
-    path: str | Path, ckpt: str | Path | None = None, size: int = 128
+    path: str | Path,
+    ckpt: str | Path | None = None,
+    size: int = 128,
+    repo: str | None = None,
 ) -> list[tuple[str, float]]:
+    if ckpt is None and repo is not None:
+        from huggingface_hub import hf_hub_download
+
+        ckpt = hf_hub_download(repo_id=repo, filename="house_cnn_best.safetensors")
     if ckpt is None:
         ckpt = str(BEST_CKPT if BEST_CKPT.exists() else LAST_CKPT)
-    model = HouseCNN(num_classes=len(TARGET_CLASSES))
-    model.load_weights(str(ckpt))
+    if ckpt is None:
+        ckpt = str(BEST_CKPT if BEST_CKPT.exists() else LAST_CKPT)
+    model = HouseCNN(num_classes=len(TARGET_CLASSES))    model.load_weights(str(ckpt))
     model.eval()
 
     img = Image.open(path).convert("RGB").resize((size, size), Image.BILINEAR)

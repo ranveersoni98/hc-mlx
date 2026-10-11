@@ -2,12 +2,21 @@
 
 from __future__ import annotations
 
+import hashlib
 import shutil
 from pathlib import Path
 
 import numpy as np
 
 from hc_mlx.config import CACHE_DIR, DATA_DIR, IMG_EXTS, MEAN, STD, TARGET_CLASSES
+
+
+def _md5(path: Path) -> str:
+    h = hashlib.md5()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def build_combined(
@@ -25,7 +34,15 @@ def build_combined(
     for target in TARGET_CLASSES:
         (dest / target).mkdir(parents=True, exist_ok=True)
 
+    # Hash everything already in dest so re-runs and overlapping raw
+    # sources never create duplicate images (which would leak train to test).
+    seen = set()
+    for target in TARGET_CLASSES:
+        for f in (dest / target).glob("*"):
+            if f.is_file():
+                seen.add(_md5(f))
     counts = {t: sum(1 for _ in (dest / t).glob("*")) for t in TARGET_CLASSES}
+    dupes = 0
     for raw in [Path(raw_places), *([Path(raw_extra)] if raw_extra and Path(raw_extra).exists() else [])]:
         for target in TARGET_CLASSES:
             src_dir = raw / target
@@ -33,6 +50,11 @@ def build_combined(
                 continue
             for f in sorted(src_dir.rglob("*")):
                 if f.is_file() and f.suffix.lower() in IMG_EXTS:
+                    digest = _md5(f)
+                    if digest in seen:
+                        dupes += 1
+                        continue
+                    seen.add(digest)
                     out = dest / target / f"{target}_{counts[target]:05d}{f.suffix.lower()}"
                     if not out.exists():
                         shutil.copyfile(f, out)
@@ -41,12 +63,17 @@ def build_combined(
     if indian_pool is not None and Path(indian_pool).exists() and indian_assign in TARGET_CLASSES:
         for f in sorted(Path(indian_pool).rglob("*")):
             if f.is_file() and f.suffix.lower() in IMG_EXTS:
+                digest = _md5(f)
+                if digest in seen:
+                    dupes += 1
+                    continue
+                seen.add(digest)
                 out = dest / indian_assign / f"indian_{counts[indian_assign]:05d}{f.suffix.lower()}"
                 if not out.exists():
                     shutil.copyfile(f, out)
                 counts[indian_assign] += 1
 
-    print(f"[build] combined class counts: {counts} -> {dest}")
+    print(f"[build] combined class counts: {counts} (dupes skipped: {dupes}) -> {dest}")
     return dest
 
 

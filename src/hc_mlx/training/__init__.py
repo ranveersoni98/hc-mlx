@@ -23,6 +23,15 @@ def accuracy(logits: mx.array, y: mx.array) -> float:
     return float(mx.mean(mx.argmax(logits, axis=-1) == y).item())
 
 
+def eval_acc(model, X: mx.array, y: mx.array, batch: int = 512) -> float:
+    """Accuracy in chunks so big datasets fit in GPU memory."""
+    correct, total = 0, y.shape[0]
+    for i in range(0, total, batch):
+        xb, yb = X[i : i + batch], y[i : i + batch]
+        correct += int(mx.sum(mx.argmax(model(xb), axis=-1) == yb).item())
+    return correct / total
+
+
 def train(
     epochs: int = 20,
     batch: int = 32,
@@ -76,8 +85,8 @@ def train(
             tot_loss += float(loss.item()) * len(idx)
             nb += len(idx)
         model.eval()
-        tr_acc = accuracy(model(Xtr_m), ytr_m)
-        te_acc = accuracy(model(Xte_m), yte_m)
+        tr_acc = eval_acc(model, Xtr_m, ytr_m)
+        te_acc = eval_acc(model, Xte_m, yte_m)
         model.train()
         if te_acc > best_acc:
             best_acc, best_ep = te_acc, epoch
@@ -88,7 +97,7 @@ def train(
         )
 
     model.eval()
-    print(f"[done] final val_acc={accuracy(model(Xte_m), yte_m):.3f} best={best_acc:.3f}@ep{best_ep}")
+    print(f"[done] final val_acc={eval_acc(model, Xte_m, yte_m):.3f} best={best_acc:.3f}@ep{best_ep}")
     model.save_weights(str(LAST_CKPT))
     print(f"[ckpt] last -> {LAST_CKPT} | best -> {BEST_CKPT}")
     return BEST_CKPT
